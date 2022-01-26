@@ -3,7 +3,7 @@
 {% block title %} {{ title }} {% endblock title %}
 
 {% block content %}
-  <h1>{{ title }}</h1>
+  <h1>{{ group.title }}</h1>
   <p>{{ group.description }}</p>
   {% for post in page_obj %}
     {% include 'posts/post-display.html' %}
