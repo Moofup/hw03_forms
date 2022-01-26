@@ -1,6 +1,9 @@
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+
 from .models import Group, Post, User
+from .forms import PostForm
 
 MAX_POST_DISPLAYED = 10
 
@@ -69,3 +72,36 @@ def post_detail(request, post_id):
         'number_of_posts': number_of_posts,
     }
     return render(request, template, context)
+
+
+@login_required
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.author = request.user
+            form.save()
+            return redirect('posts:profile', form.author)
+    form = PostForm()
+    template = 'posts/create_post.html'
+    context = {
+        'form': form,
+    }
+    return render(request, template, context)
+
+
+@login_required
+def post_edit(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    form = PostForm(request.POST, instance=post)
+    template = 'posts/create_post.html'
+    if post.author != request.user:
+        return redirect('posts:post_detail', post_id=post_id)
+    if form.is_valid():
+        post.save()
+        return redirect('posts:post_detail', post.pk)
+    is_edit = True
+    context = {'form': form, 'is_edit': is_edit}
+    return render(request, template, context)
+
