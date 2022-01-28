@@ -6,7 +6,7 @@
 
 {% block content %}
   <h1>{{ title }}</h1>
-  <h3>Всего постов: {{ number_of_posts }}</h3>
+  <h3>Всего постов: {{ author_posts_counter }}</h3>
   {% for post in page_obj %}
     {% include 'posts/post-display.html' %}
     {% if post.group %}
