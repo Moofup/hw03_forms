@@ -8,11 +8,10 @@ from .models import Group, Post, User
 MAX_POST_DISPLAYED = 10
 
 
-def paginator_get(request, post_list, max_displayed_posts):
-    paginator = Paginator(post_list, max_displayed_posts)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return page_obj
+def get_page_posts(page_number: int, post_list: Post):
+    paginator = Paginator(post_list, MAX_POST_DISPLAYED)
+    page_posts = paginator.get_page(page_number)
+    return page_posts
 
 
 def index(request):
@@ -22,7 +21,8 @@ def index(request):
         'author',
         'group'
     )
-    page_obj = paginator_get(request, post_list, MAX_POST_DISPLAYED)
+    page_number = request.GET.get('page')
+    page_obj = get_page_posts(page_number, post_list)
     context = {
         'page_obj': page_obj,
         'title': title,
@@ -35,8 +35,9 @@ def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     title = f'Записи сообщества {group.title}'
     template = 'posts/group_list.html'
-    post_list = group.posts.all()
-    page_obj = paginator_get(request, post_list, MAX_POST_DISPLAYED)
+    post_list = group.posts.select_related('author')
+    page_number = request.GET.get('page')
+    page_obj = get_page_posts(page_number, post_list)
     context = {
         'group': group,
         'page_obj': page_obj,
@@ -46,17 +47,18 @@ def group_posts(request, slug):
 
 
 def profile(request, username):
-    author_name = get_object_or_404(User, username=username)
-    title = f'Все посты пользователя {author_name.username}'
-    post_list = author_name.posts.all()
+    author = get_object_or_404(User, username=username)
+    title = f'Все посты пользователя {author.username}'
+    post_list = author.posts.all()
     template = 'posts/profile.html'
-    author_posts_counter = author_name.posts.count()
-    page_obj = paginator_get(request, post_list, MAX_POST_DISPLAYED)
+    author_posts_count = author.posts.count()
+    page_number = request.GET.get('page')
+    page_obj = get_page_posts(page_number, post_list)
     context = {
-        'author': author_name,
+        'author': author,
         'page_obj': page_obj,
         'title': title,
-        'author_posts_counter': author_posts_counter,
+        'author_posts_count': author_posts_count,
     }
     return render(request, template, context)
 
@@ -64,12 +66,12 @@ def profile(request, username):
 def post_detail(request, post_id):
     full_post = get_object_or_404(Post, pk=post_id)
     title = full_post.text
-    author_posts_counter = full_post.author.posts.count()
+    author_posts_count = full_post.author.posts.count()
     template = 'posts/post_detail.html'
     context = {
         'title': title,
         'post': full_post,
-        'author_posts_counter': author_posts_counter,
+        'author_posts_count': author_posts_count,
     }
     return render(request, template, context)
 
@@ -94,12 +96,12 @@ def post_create(request):
 @login_required
 def post_edit(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    form = PostForm(instance=post)
+    form = PostForm(request.POST or None, instance=post)
     if post.author != request.user:
         return redirect('posts:post_detail', post_id=post_id)
 
     if request.method == 'POST':
-        form = PostForm(request.POST or None, instance=post)
+        form = PostForm(request.POST, instance=post)
         if form.is_valid():
             post.save()
             return redirect('posts:post_detail', post.pk)
