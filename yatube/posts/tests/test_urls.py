@@ -39,7 +39,6 @@ class PostURLTests(TestCase):
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-        # Шаблоны по адресам
         templates_url_names_guest = {
             '/': 'posts/index.html',
             '/group/t-group/': 'posts/group_list.html',
