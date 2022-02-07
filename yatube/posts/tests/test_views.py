@@ -58,7 +58,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(test_title, 'Записи сообщества Test-group')
         self.assertEqual(test_group, self.group)
         self.assertEqual(len(response.context['page_obj']), 10)
-        response = self.client.get(reverse('posts:group_list') + '?page=2')
+        response = self.client.get(reverse('posts:group_list', kwargs={'slug': 't-group'}) + '?page=2')
         self.assertEqual(len(response.context['page_obj']), 3)
 
     def test_profile_shows_correct_context(self):
@@ -72,7 +72,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(test_author, self.author)
         self.assertEqual(test_post_count, self.author.posts.count())
         self.assertEqual(len(response.context['page_obj']), 10)
-        response = self.client.get(reverse('posts:profile') + '?page=2')
+        response = self.client.get(reverse('posts:profile', kwargs={'username': 'Nameless'}) + '?page=2')
         self.assertEqual(len(response.context['page_obj']), 3)
 
     def test_post_detail_shows_correct_context(self):
