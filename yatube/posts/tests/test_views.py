@@ -92,7 +92,7 @@ class PostPagesTests(TestCase):
         }
         form_field = response.context.get('form').fields.get('text')
         self.assertIsInstance(form_field, form_fields['text'])
-        self.assertEqual(test_is_edit, True)
+        self.assertTrue(test_is_edit)
 
     def test_post_create_shows_correct_context(self):
         response = self.authorized_client.get(reverse('posts:post_create'))
