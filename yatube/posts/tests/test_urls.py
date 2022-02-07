@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 
@@ -12,15 +14,15 @@ class StaticURLTests(TestCase):
 
     def test_homepage(self):
         response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_author(self):
         response = self.guest_client.get('/about/author/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_tech(self):
         response = self.guest_client.get('/about/tech/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
 
 class PostURLTests(TestCase):
@@ -50,9 +52,9 @@ class PostURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.guest_client.get(address)
                 if address == '/unexisting_page/':
-                    self.assertEqual(response.status_code, 404)
+                    self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
                 else:
-                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.status_code, HTTPStatus.OK)
 
         templates_url_names_authorized = {
             '/': 'posts/index.html',
@@ -66,6 +68,6 @@ class PostURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.authorized_client.get(address)
                 if address == '/unexisting_page/':
-                    self.assertEqual(response.status_code, 404)
+                    self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
                 else:
-                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.status_code, HTTPStatus.OK)

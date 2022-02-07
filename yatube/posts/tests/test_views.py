@@ -24,6 +24,8 @@ class PostPagesTests(TestCase):
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
 
+
+
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         templates_pages_names = {
@@ -40,16 +42,31 @@ class PostPagesTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_index_shows_correct_context(self):
+        group3 = Group.objects.create(title='3dTest-group', slug='3dt-group', description='3dtest-description')
+        post = Post.objects.create(
+            text='Третьезаданьевский текст',
+            author=self.author,
+            group=group3
+        )
         response = self.authorized_client.get(reverse('posts:index'))
-        test_object = response.context['page_obj'][0]
+        test_object = response.context.get('page_obj')[1]
         test_title = response.context['title']
         self.assertEqual(test_object, self.post)
         self.assertEqual(test_title, 'Последние обновления на сайте')
+        self.assertIn(post, response.context.get('page_obj'))
         self.assertEqual(len(response.context['page_obj']), 10)
         response = self.client.get(reverse('posts:index') + '?page=2')
-        self.assertEqual(len(response.context['page_obj']), 3)
+        self.assertEqual(len(response.context['page_obj']), 4)
+
+
 
     def test_group_list_shows_correct_context(self):
+        group3 = Group.objects.create(title='3dTest-group', slug='3dt-group', description='3dtest-description')
+        post = Post.objects.create(
+            text='Третьезаданьевский текст',
+            author=self.author,
+            group=group3
+        )
         response = self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': 't-group'}))
         test_object = response.context['page_obj'][0]
         test_title = response.context['title']
@@ -57,13 +74,22 @@ class PostPagesTests(TestCase):
         self.assertEqual(test_object, self.post)
         self.assertEqual(test_title, 'Записи сообщества Test-group')
         self.assertEqual(test_group, self.group)
+        self.assertNotIn(post, response.context.get('page_obj'))
         self.assertEqual(len(response.context['page_obj']), 10)
         response = self.client.get(reverse('posts:group_list', kwargs={'slug': 't-group'}) + '?page=2')
         self.assertEqual(len(response.context['page_obj']), 3)
+        response = self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': '3dt-group'}))
+        self.assertIn(post, response.context.get('page_obj'))
 
     def test_profile_shows_correct_context(self):
+        group3 = Group.objects.create(title='3dTest-group', slug='3dt-group', description='3dtest-description')
+        post = Post.objects.create(
+            text='Третьезаданьевский текст',
+            author=self.author,
+            group=group3
+        )
         response = self.authorized_client.get(reverse('posts:profile', kwargs={'username': 'Nameless'}))
-        test_object = response.context['page_obj'][0]
+        test_object = response.context['page_obj'][1]
         test_title = response.context['title']
         test_author = response.context['author']
         test_post_count = response.context['author_posts_count']
@@ -71,9 +97,10 @@ class PostPagesTests(TestCase):
         self.assertEqual(test_title, 'Все посты пользователя Nameless')
         self.assertEqual(test_author, self.author)
         self.assertEqual(test_post_count, self.author.posts.count())
+        self.assertIn(post, response.context.get('page_obj'))
         self.assertEqual(len(response.context['page_obj']), 10)
         response = self.client.get(reverse('posts:profile', kwargs={'username': 'Nameless'}) + '?page=2')
-        self.assertEqual(len(response.context['page_obj']), 3)
+        self.assertEqual(len(response.context['page_obj']), 4)
 
     def test_post_detail_shows_correct_context(self):
         response = self.authorized_client.get(reverse('posts:post_detail', kwargs={'post_id': '13'}))
