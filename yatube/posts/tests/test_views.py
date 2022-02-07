@@ -24,8 +24,6 @@ class PostPagesTests(TestCase):
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
 
-
-
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         templates_pages_names = {
@@ -42,7 +40,11 @@ class PostPagesTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_index_shows_correct_context(self):
-        group3 = Group.objects.create(title='3dTest-group', slug='3dt-group', description='3dtest-description')
+        group3 = Group.objects.create(
+            title='3dTest-group',
+            slug='3dt-group',
+            description='3dtest-description'
+        )
         post = Post.objects.create(
             text='Третьезаданьевский текст',
             author=self.author,
@@ -58,17 +60,19 @@ class PostPagesTests(TestCase):
         response = self.client.get(reverse('posts:index') + '?page=2')
         self.assertEqual(len(response.context['page_obj']), 4)
 
-
-
     def test_group_list_shows_correct_context(self):
-        group3 = Group.objects.create(title='3dTest-group', slug='3dt-group', description='3dtest-description')
+        group3 = Group.objects.create(
+            title='3dTest-group',
+            slug='3dt-group',
+            description='3dtest-description'
+        )
         post = Post.objects.create(
             text='Третьезаданьевский текст',
             author=self.author,
             group=group3
         )
         response = self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': 't-group'}))
-        test_object = response.context['page_obj'][0]
+        test_object = response.context.get('page_obj')[0]
         test_title = response.context['title']
         test_group = response.context['group']
         self.assertEqual(test_object, self.post)
@@ -82,14 +86,18 @@ class PostPagesTests(TestCase):
         self.assertIn(post, response.context.get('page_obj'))
 
     def test_profile_shows_correct_context(self):
-        group3 = Group.objects.create(title='3dTest-group', slug='3dt-group', description='3dtest-description')
+        group3 = Group.objects.create(
+            title='3dTest-group',
+            slug='3dt-group',
+            description='3dtest-description'
+        )
         post = Post.objects.create(
             text='Третьезаданьевский текст',
             author=self.author,
             group=group3
         )
         response = self.authorized_client.get(reverse('posts:profile', kwargs={'username': 'Nameless'}))
-        test_object = response.context['page_obj'][1]
+        test_object = response.context.get('page_obj')[1]
         test_title = response.context['title']
         test_author = response.context['author']
         test_post_count = response.context['author_posts_count']
@@ -130,4 +138,3 @@ class PostPagesTests(TestCase):
         }
         form_field = response.context.get('form').fields.get('text')
         self.assertIsInstance(form_field, form_fields['text'])
-
