@@ -22,7 +22,6 @@ class PostFormTests(TestCase):
         cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.author)
-
         cls.form = PostForm()
 
     def test_create_post(self):
